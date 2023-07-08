@@ -1,0 +1,2 @@
+The provided model represents a parking allocation problem where the goal is to allocate vehicles to parking spaces in a grid layout. We'll consider optimizing the allocation of parking spaces in a city to minimize congestion and maximize the utilization of available spaces.
+More precisely, the rationale is for vehicles to occupy the center parking spaces first and then the side parking spaces.
