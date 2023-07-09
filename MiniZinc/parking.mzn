@@ -1,6 +1,6 @@
-int: num_rows = 5;
-int: num_columns = 5;
-int: num_vehicles = 25;
+int: num_rows = 20;
+int: num_columns = 20;
+int: num_vehicles = 100;
 
 % Constants
 int: max_vehicles = num_rows * num_columns;
@@ -18,13 +18,18 @@ constraint forall(i in 1..num_rows, j in 1..num_columns)(
 % Constraint 2: The number of allocated parking spaces should be equal to the number of vehicles
 constraint sum([allocation[i,j] | i in 1..num_rows, j in 1..num_columns]) = num_vehicles;
 
-% Constraint 3: Ensure vehicles are parked in the corners and then fill the central spaces
-constraint
-  sum([allocation[i,j] | i in {1, num_rows}, j in {1, num_columns}]) = min(num_vehicles, 4) 
-  /\ sum([allocation[i,j] | i in 2..num_rows-1, j in 2..num_columns-1]) = min(num_vehicles - min(num_vehicles, 4), (num_rows - 2) * (num_columns - 2));
-
-% Constraint 4: Fill the remaining edge spaces
-constraint sum([allocation[i,j] | i in 2..num_rows-1, j in {1, num_columns}]) + sum([allocation[i,j] | i in {1, num_rows}, j in 2..num_columns-1]) = num_vehicles - min(num_vehicles, 4) - min(num_vehicles - min(num_vehicles, 4), (num_rows - 2) * (num_columns - 2));
+% Constraint 3: Ensure vehicles are parked in the most central seats and gradually towards the central side seats
+constraint forall(k in 1..(num_rows div 2))(
+  let {
+    int: start_row = k;
+    int: end_row = num_rows - k + 1;
+    int: start_col = k;
+    int: end_col = num_columns - k + 1;
+    int: max_vehicles_layer = (end_row - start_row + 1) * (end_col - start_col + 1);
+    int: vehicles_layer = min(num_vehicles, max_vehicles_layer)
+  } in
+  sum([allocation[i,j] | i in start_row..end_row, j in start_col..end_col]) = vehicles_layer
+);
 
 % Solve
 solve maximize sum([allocation[i,j] | i in 1..num_rows, j in 1..num_columns]);
