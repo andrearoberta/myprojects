@@ -1,6 +1,6 @@
 int: num_rows = 5;
 int: num_columns = 5;
-int: num_vehicles = 24;
+int: num_vehicles = 25;
 
 % Constants
 int: max_vehicles = num_rows * num_columns;
@@ -18,12 +18,13 @@ constraint forall(i in 1..num_rows, j in 1..num_columns)(
 % Constraint 2: The number of allocated parking spaces should be equal to the number of vehicles
 constraint sum([allocation[i,j] | i in 1..num_rows, j in 1..num_columns]) = num_vehicles;
 
-% Constraint 3: Ensure vehicles are parked in the central space and then fill the edge spaces
+% Constraint 3: Ensure vehicles are parked in the corners and then fill the central spaces
 constraint
-  sum([allocation[i,j] | i in 2..num_rows-1, j in 2..num_columns-1]) = min(num_vehicles, (num_rows - 2) * (num_columns - 2));
+  sum([allocation[i,j] | i in {1, num_rows}, j in {1, num_columns}]) = min(num_vehicles, 4) 
+  /\ sum([allocation[i,j] | i in 2..num_rows-1, j in 2..num_columns-1]) = min(num_vehicles - min(num_vehicles, 4), (num_rows - 2) * (num_columns - 2));
 
-% Constraint 4: Limit the number of edge parking spaces
-constraint sum([allocation[i,j] | i in 1..num_rows, j in 1..num_columns where (i=1 \/ i=num_rows \/ j=1 \/ j=num_columns)]) = num_vehicles - min(num_vehicles, (num_rows - 2) * (num_columns - 2));
+% Constraint 4: Fill the remaining edge spaces
+constraint sum([allocation[i,j] | i in 2..num_rows-1, j in {1, num_columns}]) + sum([allocation[i,j] | i in {1, num_rows}, j in 2..num_columns-1]) = num_vehicles - min(num_vehicles, 4) - min(num_vehicles - min(num_vehicles, 4), (num_rows - 2) * (num_columns - 2));
 
 % Solve
 solve maximize sum([allocation[i,j] | i in 1..num_rows, j in 1..num_columns]);
