@@ -1,46 +1,46 @@
-int: num_rows = 20;
-int: num_columns = 20;
-int: num_vehicles = 100;
+int: n = 5;     % Dimensione della griglia
 
-% Constants
-int: max_vehicles = num_rows * num_columns;
+array[1..n, 1..n] of int: parking =              % Mappa del parcheggio
+    array2d(1..n, 1..n,
+        [
+            1, 1, 0, 1, 0,
+            0, 1, 1, 1, 1,
+            1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1
+        ]);
 
-% Decision Variables
-array[1..num_rows, 1..num_columns] of var 0..1: allocation;
+% Mappa del parcheggio (0=spazio libero, 1=spazio occupato)
+int: carX = 4;                            % Coordinate x della macchina
+int: carY = 2;                            % Coordinate y della macchina
 
-% Constraints
+% Definizione delle variabili decisionali
+var int: targetX;                      % Coordinata x del parcheggio target
+var int: targetY;                      % Coordinata y del parcheggio target
+var int: distance;                     % Distanza minima tra la macchina e il parcheggio (squared Euclidean distance)
 
-% Constraint 1: Each vehicle can be allocated to at most one parking space
-constraint forall(i in 1..num_rows, j in 1..num_columns)(
-  allocation[i,j] <= 1
+% Vincoli
+constraint targetX >= 1 /\ targetX <= n;        % La coordinata x del parcheggio target è all'interno della griglia
+constraint targetY >= 1 /\ targetY <= n;        % La coordinata y del parcheggio target è all'interno della griglia
+constraint parking[targetX, targetY] = 0;      % Il parcheggio target è uno spazio libero
+
+% Calcolo della distanza euclidea quadrata tra la macchina e il parcheggio target
+constraint distance = (targetX - carX)^2 + (targetY - carY)^2;
+
+% Obiettivo: minimizzare la distanza tra la macchina e il parcheggio target
+solve ::int_search([distance], input_order, indomain_min) minimize distance;
+
+% Inserimento del veicolo nel parcheggio target
+array[1..n, 1..n] of var 0..1: parked;
+constraint forall(i in 1..n, j in 1..n)(
+  parked[i,j] = if i = targetX /\ j = targetY then 1 else parking[i,j] endif
 );
-
-% Constraint 2: The number of allocated parking spaces should be equal to the number of vehicles
-constraint sum([allocation[i,j] | i in 1..num_rows, j in 1..num_columns]) = num_vehicles;
-
-% Constraint 3: Ensure vehicles are parked in the most central seats and gradually towards the central side seats
-constraint forall(k in 1..(num_rows div 2))(
-  let {
-    int: start_row = k;
-    int: end_row = num_rows - k + 1;
-    int: start_col = k;
-    int: end_col = num_columns - k + 1;
-    int: max_vehicles_layer = (end_row - start_row + 1) * (end_col - start_col + 1);
-    int: vehicles_layer = min(num_vehicles, max_vehicles_layer)
-  } in
-  sum([allocation[i,j] | i in start_row..end_row, j in start_col..end_col]) = vehicles_layer
-);
-
-% Solve
-solve maximize sum([allocation[i,j] | i in 1..num_rows, j in 1..num_columns]);
 
 % Output
-output [
-  "Parking Utilization: ", show(num_vehicles), "\n",
-  "Parking Allocation:\n",
-  "----------\n"
-] ++
-[
-  if j = num_columns then show(allocation[i,j]) ++ "\n" else show(allocation[i,j]) ++ " " endif |
-  i in 1..num_rows, j in 1..num_columns
-];
+output ["Griglia del parcheggio:\n"]++
+[if j = n then show(parked[i, j]) ++ "\n" else show(parked[i, j]) ++ " " endif | i in 1..n, j in 1..n] ++
+["----------\n"];
+
+output ["Il parcheggio target si trova alle coordinate: (", show(targetX), ", ", show(targetY), ")\n"];
+
+output ["Distanza minima dalla macchina: ", show(sqrt(distance)),"\n"];
