@@ -1,6 +1,6 @@
-int: n = 5;     % Dimensione della griglia
+int: n = 5;     % Grid size
 
-array[1..n, 1..n] of int: parking =              % Mappa del parcheggio
+array[1..n, 1..n] of int: parking =              % Parking map
     array2d(1..n, 1..n,
         [
             1, 1, 1, 1, 1,
@@ -10,34 +10,33 @@ array[1..n, 1..n] of int: parking =              % Mappa del parcheggio
             1, 1, 1, 1, 1
         ]);
 
-% Mappa del parcheggio (0=spazio libero, 1=spazio occupato)
+% Parking map (0=free space, 1=occupied space)
 int: carX = 4;                            
 int: carY = 2;                            
 
-% Definizione delle variabili decisionali
-var int: targetX;                      % Coordinata x del parcheggio target
-var int: targetY;                      % Coordinata y del parcheggio target
-var int: distance;                     % Distanza minima tra la macchina e il parcheggio (squared Euclidean distance)
-var int: numFreeSpaces;                % Numero di spazi di parcheggio liberi nelle vicinanze del parcheggio target
+var int: targetX;                     % Target parking lot x coordinate
+var int: targetY;                      % Target parking lot y coordinate
+var int: distance;                     % Minimum distance between the car and the parking lot (squared Euclidean distance).
+var int: numFreeSpaces;                % Number of free parking spaces in the vicinity of the target parking lot
 
 
-constraint targetX >= 1 /\ targetX <= n;        % La coordinata x del parcheggio target è all'interno della griglia
-constraint targetY >= 1 /\ targetY <= n;        % La coordinata y del parcheggio target è all'interno della griglia
-constraint parking[targetX, targetY] = 0;      % Il parcheggio target è uno spazio libero
+constraint targetX >= 1 /\ targetX <= n;        % The x-coordinate of the target parking lot is within the grid.
+constraint targetY >= 1 /\ targetY <= n;        % % The y-coordinate of the target parking lot is within the grid.
+constraint parking[targetX, targetY] = 0;      % Target parking is free space
 
-% Calcolo della distanza euclidea quadrata tra la macchina e il parcheggio target
+% Calculation of the squared Euclidean distance between the car and the target parking lot.
 constraint distance = (targetX - carX)^2 + (targetY - carY)^2;
 
-% Calcolo del numero di spazi di parcheggio liberi nelle vicinanze del parcheggio target
+% Calculation of the number of free parking spaces in the vicinity of the target parking lot
 constraint numFreeSpaces = sum(i in targetX-1..targetX+1, j in targetY-1..targetY+1)(
   if i >= 1 /\ i <= n /\ j >= 1 /\ j <= n /\ parking[i, j] = 0 then 1 else 0 endif
 );
 
 
-% Obiettivo: minimizzare la distanza tra la macchina e il parcheggio target
+% Objective: to minimize the distance between the car and the target parking lot.
 solve ::int_search([distance, -numFreeSpaces], input_order, indomain_min) minimize distance;
 
-% Inserimento del veicolo nel parcheggio target
+% Entering the vehicle in the target parking lot.
 array[1..n, 1..n] of var 0..1: parked;
 constraint forall(i in 1..n, j in 1..n)(
   parked[i,j] = if i = targetX /\ j = targetY then 1 else parking[i,j] endif
