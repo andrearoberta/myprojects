@@ -11,8 +11,8 @@ array[1..n, 1..n] of int: parking =              % Mappa del parcheggio
         ]);
 
 % Mappa del parcheggio (0=spazio libero, 1=spazio occupato)
-int: carX = 4;                            % Coordinate x della macchina
-int: carY = 2;                            % Coordinate y della macchina
+int: carX = 4;                            
+int: carY = 2;                            
 
 % Definizione delle variabili decisionali
 var int: targetX;                      % Coordinata x del parcheggio target
@@ -20,7 +20,7 @@ var int: targetY;                      % Coordinata y del parcheggio target
 var int: distance;                     % Distanza minima tra la macchina e il parcheggio (squared Euclidean distance)
 var int: numFreeSpaces;                % Numero di spazi di parcheggio liberi nelle vicinanze del parcheggio target
 
-% Vincoli
+
 constraint targetX >= 1 /\ targetX <= n;        % La coordinata x del parcheggio target è all'interno della griglia
 constraint targetY >= 1 /\ targetY <= n;        % La coordinata y del parcheggio target è all'interno della griglia
 constraint parking[targetX, targetY] = 0;      % Il parcheggio target è uno spazio libero
@@ -43,7 +43,7 @@ constraint forall(i in 1..n, j in 1..n)(
   parked[i,j] = if i = targetX /\ j = targetY then 1 else parking[i,j] endif
 );
 
-% Output
+
 output ["Griglia del parcheggio:\n"]++
 [if j = n then show(parked[i, j]) ++ "\n" else show(parked[i, j]) ++ " " endif | i in 1..n, j in 1..n] ++
 ["----------\n"];
