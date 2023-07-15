@@ -43,12 +43,12 @@ constraint forall(i in 1..n, j in 1..n)(
 );
 
 
-output ["Griglia del parcheggio:\n"]++
+output ["Parking grid:\n"]++
 [if j = n then show(parked[i, j]) ++ "\n" else show(parked[i, j]) ++ " " endif | i in 1..n, j in 1..n] ++
 ["----------\n"];
 
-output ["Il parcheggio target si trova alle coordinate: (", show(targetX), ", ", show(targetY), ")\n"];
+output ["The target parking lot is located at the coordinates: (", show(targetX), ", ", show(targetY), ")\n"];
 
-output ["Distanza minima dalla macchina: ", show(sqrt(distance)),"\n"];
+output ["Minimum distance from the car: ", show(sqrt(distance)),"\n"];
 
-output ["Numero di spazi di parcheggio liberi nelle vicinanze: ", show(numFreeSpaces),"\n"];
+output ["Number of free parking spaces nearby: ", show(numFreeSpaces),"\n"];
